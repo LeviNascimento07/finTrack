@@ -31,30 +31,46 @@ Projeto desenvolvido para a disciplina de **Java intermediário** (Capacita iRed
 ## Arquitetura
 
 O projeto segue uma separação de responsabilidades em camadas, do mais próximo dos dados ao mais próximo da tela:
+
+```
+Tela (FXML) -> Controller -> Service -> DAO -> Banco (SQLite)
+```
+
+- **Model** (`Transacao`) — a entidade que representa uma receita ou despesa.
+- **DAO** (`TransacaoDAO`, `Conexao`) — acesso ao banco com JDBC e `PreparedStatement`.
+- **Service** (`FinanceiroService`) — regras de negócio: validação e cálculo de totais.
+- **Controller** (`MainController`, `FormController`) — comportamento de cada tela.
+- **View** (`main.fxml`, `form.fxml`, `style.css`) — aparência e estrutura das telas.
+- **Generic** (`RepositorioGenerico<T>`) — repositório genérico reutilizável.
+
+### Estrutura de pastas
+
+```
 src/main/java/
-├── module-info.java              # Descritor de módulo
+├── module-info.java              # Descritor de modulo
 └── com/fintrack/
-├── app/FinApp.java           # Ponto de entrada (extends Application)
-├── model/Transacao.java      # Entidade
-├── generic/RepositorioGenerico.java
-├── dao/
-│   ├── Conexao.java          # Conexão SQLite + criação da tabela
-│   └── TransacaoDAO.java     # CRUD com PreparedStatement
-├── service/FinanceiroService.java
-└── controller/
-├── MainController.java    # Tela principal (lista + totais)
-└── FormController.java    # Formulário de cadastro
+    ├── app/FinApp.java           # Ponto de entrada (extends Application)
+    ├── model/Transacao.java      # Entidade
+    ├── generic/RepositorioGenerico.java
+    ├── dao/
+    │   ├── Conexao.java          # Conexao SQLite + criacao da tabela
+    │   └── TransacaoDAO.java     # CRUD com PreparedStatement
+    ├── service/FinanceiroService.java
+    └── controller/
+        ├── MainController.java    # Tela principal (lista + totais)
+        └── FormController.java    # Formulario de cadastro
+
 src/main/resources/
 ├── fxml/
 │   ├── main.fxml
 │   └── form.fxml
 └── css/style.css
+
 src/test/java/com/fintrack/        # Testes JUnit 5
 ├── model/TransacaoTest.java
 ├── dao/TransacaoDAOTest.java
 └── generic/RepositorioGenericoTest.java
-
----
+```
 
 ## Como executar
 
