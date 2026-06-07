@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.fintrack.controller.MainController"
+            stylesheets="@../css/style.css">
+
+    <top>
+        <ToolBar styleClass="toolbar">
+            <Button text="Nova Transação" onAction="#abrirFormulario"/>
+            <Button text="Atualizar"      onAction="#abrirFormularioAtualizar"/>
+            <Button text="Remover"        onAction="#removerSelecionada"/>
+        </ToolBar>
+    </top>
+
+    <center>
+        <TableView fx:id="tabelaTransacoes">
+            <columns>
+                <TableColumn fx:id="colId"        text="ID"        prefWidth="50"/>
+                <TableColumn fx:id="colDescricao" text="Descrição" prefWidth="220"/>
+                <TableColumn fx:id="colValor"     text="Valor"     prefWidth="100"/>
+                <TableColumn fx:id="colTipo"      text="Tipo"      prefWidth="100"/>
+                <TableColumn fx:id="colData"      text="Data"      prefWidth="120"/>
+            </columns>
+            <placeholder><Label text="Nenhuma transação cadastrada."/></placeholder>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox styleClass="rodape" spacing="16">
+            <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+            <Label text="Receitas:"  styleClass="label-titulo"/>
+            <Label fx:id="lblReceitas" styleClass="label-receita" text="R$ 0,00"/>
+            <Label text="|"/>
+            <Label text="Despesas:" styleClass="label-titulo"/>
+            <Label fx:id="lblDespesas" styleClass="label-despesa" text="R$ 0,00"/>
+            <Label text="|"/>
+            <Label text="Saldo:"    styleClass="label-titulo"/>
+            <Label fx:id="lblSaldo"    styleClass="label-saldo"   text="R$ 0,00"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

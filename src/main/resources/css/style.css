@@ -1,0 +1,91 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f5f5f5;
+}
+
+/* ---- Toolbar ---- */
+.toolbar {
+    -fx-background-color: #263238;
+    -fx-padding: 8px 12px;
+    -fx-spacing: 8px;
+}
+
+.toolbar .button {
+    -fx-background-color: #455a64;
+    -fx-text-fill: white;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.toolbar .button:hover {
+    -fx-background-color: #546e7a;
+}
+
+/* ---- TableView ---- */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+}
+
+.table-view .column-header {
+    -fx-background-color: #37474f;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #37474f;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #b3d9f7;
+    -fx-text-fill: #000000;
+}
+
+/* ---- Rodapé ---- */
+.rodape {
+    -fx-background-color: #eceff1;
+    -fx-border-color: #cfd8dc;
+    -fx-border-width: 1px 0 0 0;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.label-titulo {
+    -fx-font-weight: bold;
+    -fx-text-fill: #546e7a;
+}
+
+/* ---- Labels de valor ---- */
+.label-receita {
+    -fx-text-fill: #2e7d32;
+    -fx-font-weight: bold;
+}
+
+.label-despesa {
+    -fx-text-fill: #c62828;
+    -fx-font-weight: bold;
+}
+
+.label-saldo {
+    -fx-text-fill: #1565c0;
+    -fx-font-weight: bold;
+}
+
+/* ---- Formulário ---- */
+.label-erro {
+    -fx-text-fill: #c62828;
+    -fx-font-style: italic;
+    -fx-font-size: 12px;
+}
+
+.btn-salvar {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: white;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-salvar:hover {
+    -fx-background-color: #1b5e20;
+}

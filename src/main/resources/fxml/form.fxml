@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.fintrack.controller.FormController"
+      stylesheets="@../css/style.css"
+      spacing="10" alignment="CENTER_LEFT" prefWidth="350">
+    <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+    <Label text="Descrição"/>
+    <TextField fx:id="txtDescricao" promptText="Ex.: Salário, Aluguel..." maxWidth="Infinity"/>
+
+    <Label text="Valor (R$)"/>
+    <TextField fx:id="txtValor" promptText="0.00" maxWidth="Infinity"/>
+
+    <Label text="Tipo"/>
+    <ComboBox fx:id="cmbTipo" maxWidth="Infinity"/>
+
+    <Label text="Data"/>
+    <DatePicker fx:id="dtpData" maxWidth="Infinity"/>
+
+    <Label fx:id="lblErro" styleClass="label-erro" text="" wrapText="true"/>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <padding><Insets top="8"/></padding>
+        <Button text="Salvar"   onAction="#salvar"   styleClass="btn-salvar"/>
+        <Button text="Cancelar" onAction="#cancelar"/>
+    </HBox>
+</VBox>
