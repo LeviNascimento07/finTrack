@@ -60,14 +60,55 @@ não pode vazar dado de outro usuário se o repository já filtra por dono.
 
 - [x] 0. Preparação: limpeza do desktop, base Spring Boot, entidades e
       repositories.
-- [ ] 1. Segurança + JWT + AuthController **(próxima etapa)**
-- [ ] 2. Categorias (controller + service + DTOs)
+- [x] 1. Segurança + JWT + AuthController.
+- [ ] 2. Categorias (controller + service + DTOs) **(próxima etapa)**
 - [ ] 3. Transações (controller + service + DTOs)
 - [ ] 4. Saldo e relatórios
 - [ ] 5. GlobalExceptionHandler
 - [ ] 6. Swagger
 - [ ] 7. Testes
 - [ ] 8. README
+
+### Etapa 1 — o que foi implementado
+
+- `SecurityConfig`: STATELESS, CSRF off, público `/api/auth/**`,
+  `/swagger-ui.html`, `/swagger-ui/**`, `/v3/api-docs/**`, `/error`; resto
+  autenticado. Beans `PasswordEncoder` (BCrypt), `DaoAuthenticationProvider`,
+  `AuthenticationManager`, `AuthenticationEntryPoint` (401) e
+  `AccessDeniedHandler` (403).
+- `JwtService`/`JwtProperties` (jjwt 0.12.6, `Keys.hmacShaKeyFor` +
+  `verifyWith`, sem API antiga) + `JwtAuthenticationFilter` +
+  `UsuarioDetailsService`/`UsuarioDetailsImpl` (principal com `getId()`).
+- `AuthController`: `POST /api/auth/register` (201) e `/login` (200);
+  `RegistroDTO`/`LoginDTO`/`TokenDTO` (records + Bean Validation);
+  `EmailJaCadastradoException` (409) e `CredenciaisInvalidasException` (401
+  genérico) tratadas por `@ExceptionHandler` local — sem
+  `GlobalExceptionHandler` ainda (etapa 5).
+- `ErroResponse` (`com.fintrack.exception`): formato único de erro
+  (`timestamp, status, mensagem, path`) usado por entry point, access denied
+  handler e handlers locais — a etapa 5 deve reusá-lo, não inventar outro.
+
+### Decisão: usuário autenticado nas etapas 2 e 3
+
+Padrão em controllers: `@AuthenticationPrincipal UsuarioDetailsImpl` na
+assinatura (explícito, testável com `@WithMockUser`). Em services sem esse
+parâmetro: `UsuarioAutenticado.getId()` (`com.fintrack.security`) — tem
+guarda contra principal anônimo (`"anonymousUser"` é `String`, não
+`UsuarioDetailsImpl`; sem guarda dá `ClassCastException`).
+
+### Armadilhas encontradas
+
+- `/error` fora do `permitAll()` fazia falha de `@Valid` virar 401 em vez de
+  400 (o forward interno do Spring para `/error` passa pela cadeia de
+  segurança).
+- `response.getWriter()` no entry point/access denied handler usa
+  ISO-8859-1 por padrão — corrigido com `setCharacterEncoding("UTF-8")` +
+  `getOutputStream()`.
+- `/swagger-ui.html` não é coberto por `/swagger-ui/**` (rota de redirect
+  própria) — precisa entrada explícita em `permitAll()`.
+- `mvn spring-boot:run` deu `ClassNotFoundException` neste ambiente (Git
+  Bash/Windows); validado com `mvn clean package` + `java -jar` usando
+  `"$JAVA_HOME/bin/java"` (o `java` do PATH era um JDK 8 via SDKMAN).
 
 ## Pontos em aberto
 
