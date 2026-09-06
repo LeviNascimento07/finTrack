@@ -93,3 +93,40 @@ Padrões nascidos desse histórico e que valem para código novo vivem em
   arquivo de teste duplica todas as chaves do principal (não apenas as que
   mudam), senão propriedades como `fintrack.jwt.secret` ficam ausentes no
   contexto de teste.
+
+### Limitação conhecida
+
+`SaldoInsuficienteException` só age sobre `DESPESA` (ver "Decisões de
+projeto" em `CLAUDE.md`). Editar uma `RECEITA` para um valor menor, ou
+excluí-la, pode deixar o saldo negativo sem disparar a regra — a validação
+só olha o momento em que uma despesa é criada/editada, não os efeitos de
+mexer numa receita depois. **Decisão consciente, não bug**: bloquear esse
+caminho impediria o usuário de corrigir um lançamento de receita errado
+depois de já ter gasto com base nele. Se isso mudar, é decisão de projeto
+e precisa ser discutida antes de qualquer etapa futura mexer nisso.
+
+## Etapa 4 — Saldo e relatórios
+
+- `RelatorioService.calcularSaldo`: sem `dataInicio`/`dataFim`, usa
+  `sumValorByUsuarioIdAndTipo` (saldo geral); com ambos, usa
+  `sumValorByUsuarioIdAndTipoAndDataBetween` — nenhuma query nova, só
+  reaproveitamento dos métodos que já existiam desde a etapa 0.
+  `totalizarPorCategoria` reaproveita `totalizarPorCategoria` do
+  repository. Todo valor passa por `normalizar` (`setScale(2,
+  HALF_UP)`) antes de entrar no DTO — o `coalesce(sum(...), 0)` do
+  repository evita `null`, mas não garante escala 2 depois da soma.
+- Validação de intervalo isolada em `validarIntervalo`: exatamente uma das
+  datas informada, ou `dataInicio` depois de `dataFim`, ambos 400 via
+  `IntervaloDataInvalidoException` (nova).
+- `RelatorioController` em `/api/v1/usuarios/{usuarioId}/saldo` e
+  `/api/v1/usuarios/{usuarioId}/relatorios/por-categoria` (`tipo` default
+  `DESPESA`), mesmo padrão de `validarUsuarioDaRota` das etapas anteriores.
+- Confirmado em runtime (não só em teste com mock): usuário recém-criado
+  sem nenhuma transação recebe `{"totalReceitas":0.00,...}` e `[]` no
+  relatório — nunca `null` nem erro. `RelatorioServiceTest` (Mockito)
+  cobre esse caso e mais 4: soma geral, soma por período, `dataInicio` >
+  `dataFim`, e apenas uma data informada.
+
+### Armadilhas
+
+- Nenhuma nova.
