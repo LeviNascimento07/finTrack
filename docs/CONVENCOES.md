@@ -72,6 +72,21 @@ dedicado e `ddl-auto: create-drop`; esse arquivo precisa repetir todas as
 chaves do `application.yml` principal, não só as que mudam (Spring Boot
 carrega um `application.yml` só, o do classpath de teste tem prioridade).
 
+## Documentação OpenAPI/Swagger
+
+Todo DTO novo leva `@Schema(description=..., example=...)` em cada campo (e
+um `@Schema(description=...)` de classe no record). Toda resposta de erro
+documentada em `@ApiResponse` referencia `ErroResponse.class` — nunca um
+schema ad-hoc. Todo controller novo leva `@Tag`; todo endpoint leva
+`@Operation(summary, description)` e `@ApiResponses` cobrindo pelo menos
+200/201/204 de sucesso e os erros que aquele endpoint pode de fato lançar
+(401 é implícito em toda rota protegida, mas documente mesmo assim).
+
+A segurança "bearerAuth" é global (`@OpenAPIDefinition(security = ...)` em
+`OpenApiConfig`) — todo endpoint novo já nasce exigindo token na doc. Um
+endpoint público novo precisa de `@SecurityRequirements` (vazio) no método,
+senão o Swagger UI vai pedir Authorize para ele sem necessidade.
+
 ## DTOs
 
 `record` com Bean Validation nas anotações de campo usadas no request. Para

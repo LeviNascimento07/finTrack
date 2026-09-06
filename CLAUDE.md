@@ -70,8 +70,8 @@ camada de dados, não só na de segurança.
 - [x] 3. Transações (controller + service + DTOs).
 - [x] 4. Saldo e relatórios.
 - [x] 5. GlobalExceptionHandler.
-- [ ] 6. Swagger **(atual)**
-- [ ] 7. Testes
+- [x] 6. Swagger.
+- [ ] 7. Testes **(atual)**
 - [ ] 8. README
 
 ## Pontos em aberto

@@ -165,6 +165,39 @@ e precisa ser discutida antes de qualquer etapa futura mexer nisso.
 - Não foi possível disparar organicamente um 500 real via requisições HTTP
   para confirmar o fallback fim-a-fim — todo input malformado testado
   (JSON quebrado, enum inválido no corpo e na query, tipo de path variable
-  errado) já caía num handler específico (400/404/409). Confirmado por
-  revisão de código que o fallback loga a exceção inteira só no servidor e
-  devolve mensagem genérica fixa ao cliente.
+  errado) já caía num handler específico (400/404/409). Fechado depois
+  com `GlobalExceptionHandlerFallbackTest` (unitário, chama
+  `handleFallback` direto com uma exceção sentinela e afirma que a
+  mensagem interna não aparece em nenhum campo do corpo) — não precisa de
+  contexto Spring nem de rota real.
+
+## Etapa 6 — Swagger
+
+- `OpenApiConfig` (`com.fintrack.config`): `@OpenAPIDefinition` com `info`
+  e `security = @SecurityRequirement(name = "bearerAuth")` global, mais
+  `@SecurityScheme(type = HTTP, scheme = "bearer", bearerFormat = "JWT")`
+  — só anotações, sem bean `OpenAPI` manual. `AuthController.register`/
+  `login` usam `@SecurityRequirements` (vazio) para sobrescrever o global
+  e aparecer como público no Swagger UI. Confirmado no `/v3/api-docs`
+  gerado: 1 `security` de nível raiz com `bearerAuth` + só 2 overrides
+  vazios (register, login) — todo o resto herda o global implicitamente,
+  sem precisar repetir a anotação endpoint a endpoint.
+- `@Schema(description, example)` em todo campo de todo DTO (records:
+  anotação direta no componente do canonical constructor, funciona igual
+  a `@NotBlank` etc.). `ErroResponse` também ganhou `@Schema` — inclusive
+  no campo `campos`, documentando que só existe em erro de validação.
+  Exemplo do JWT em `TokenDTO` é uma string claramente fictícia
+  (`EXEMPLO-FICTICIO-NAO-E-UM-TOKEN-REAL`); nenhum DTO de response tem
+  campo `senha` (só `RegistroDTO`/`LoginDTO`, que são só request).
+- `@Tag` por controller, `@Operation` + `@ApiResponses` (referenciando
+  `ErroResponse.class` em todo erro) por endpoint, com ênfase em
+  401/403/404/409 conforme pedido.
+
+### Armadilhas
+
+- Nenhuma nova — springdoc 2.6.0 já estava no `pom.xml` desde a etapa 0 e
+  as rotas de Swagger já eram públicas no `SecurityConfig` desde a etapa 1.
+- Validação do fluxo "Authorize" do Swagger UI feita via curl (login →
+  header `Authorization: Bearer`), não num browser real (ambiente
+  headless) — o mecanismo testado é o mesmo que o botão aciona, mas não é
+  literalmente um clique na UI.
