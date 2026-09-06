@@ -71,8 +71,8 @@ camada de dados, não só na de segurança.
 - [x] 4. Saldo e relatórios.
 - [x] 5. GlobalExceptionHandler.
 - [x] 6. Swagger.
-- [ ] 7. Testes **(atual)**
-- [ ] 8. README
+- [x] 7. Testes.
+- [ ] 8. README **(atual)**
 
 ## Pontos em aberto
 

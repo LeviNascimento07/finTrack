@@ -72,6 +72,29 @@ dedicado e `ddl-auto: create-drop`; esse arquivo precisa repetir todas as
 chaves do `application.yml` principal, não só as que mudam (Spring Boot
 carrega um `application.yml` só, o do classpath de teste tem prioridade).
 
+## Testes de repository
+
+Query JPQL nova ou que muda? Teste com `@DataJpaTest` +
+`@AutoConfigureTestDatabase(replace = Replace.NONE)` — sem o `Replace.NONE`,
+o `@DataJpaTest` tenta trocar o datasource por um banco embarcado que este
+projeto não tem (só SQLite), e o teste falha por causa do datasource, não
+do código. Cada método já roda numa transação com rollback automático (não
+precisa `@Transactional` explícito nem limpar dados manualmente); mesmo
+assim, cada teste cria seus próprios usuários/categorias com nome/e-mail
+únicos (`UUID.randomUUID()`), nunca reaproveita dado de outro teste.
+
+## Mockito e classes concretas (JDK 24 deste ambiente)
+
+`@Mock` em uma **classe concreta** (não interface) pode falhar com
+`Mockito cannot mock this class` — o inline mock maker (ByteBuddy) deste
+projeto não instrumenta bytecode do JDK 24 neste ambiente. Mockar
+interfaces (`AuthenticationManager`, repositories, `PasswordEncoder`) não
+tem esse problema. Se o colaborador é uma classe concreta simples e o
+teste não depende do que ela faz (ex.: `JwtService` num teste que nunca
+chega a gerar token porque a exceção acontece antes), use uma instância
+real construída à mão em vez de mockar — mais simples e não depende de
+nenhuma configuração de JVM.
+
 ## Documentação OpenAPI/Swagger
 
 Todo DTO novo leva `@Schema(description=..., example=...)` em cada campo (e

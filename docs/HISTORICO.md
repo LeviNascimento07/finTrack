@@ -201,3 +201,38 @@ e precisa ser discutida antes de qualquer etapa futura mexer nisso.
   header `Authorization: Bearer`), não num browser real (ambiente
   headless) — o mecanismo testado é o mesmo que o botão aciona, mas não é
   literalmente um clique na UI.
+
+## Etapa 7 — Testes
+
+Foco em fechar lacunas (13 → 34 testes), não inflar número. Cobertura nova:
+`CategoriaServiceTest` (7, Mockito: nome duplicado x2, editar/excluir
+global, excluir com transações, categoria de outro usuário, listagem
+global+própria), `AuthServiceTest` (3, Mockito: e-mail duplicado, senha
+errada e e-mail inexistente — mesma exceção/mensagem nos dois),
+`CategoriaRepositoryTest`/`TransacaoRepositoryTest` (8, `@DataJpaTest` +
+`Replace.NONE`: `findVisiveisPara`, `findAcessivelPor`, as duas somas,
+`totalizarPorCategoria`, `findComFiltros` isolados e combinados),
+`TokenJwtInvalidoTest` (3, `@SpringBootTest`: token expirado, assinatura
+inválida, header sem `Bearer` — os três 401 via `JwtAuthenticationEntryPoint`,
+sem depender de nenhum dado persistido).
+
+### Achados reais (conforme pedido, reportados antes de qualquer correção)
+
+- `TransacaoRepository.totalizarPorCategoria` não tinha `ORDER BY` — o
+  escopo desta etapa pedia um teste confirmando que o método "agrupa e
+  ordena corretamente", mas `GROUP BY` sem `ORDER BY` não garante ordem
+  nenhuma (por sorte "funcionava" no SQLite por comportamento não
+  especificado). Usuário optou por adicionar `order by c.nome` à query
+  (pequena mudança de produção, aprovada antes de escrever o teste) em vez
+  de só testar o agrupamento ignorando ordem.
+- `@Mock` em `JwtService` (classe concreta) quebrava com
+  `MockitoException: Java 24 ... not supported by ... Byte Buddy` neste
+  ambiente — não é bug de produção, é limitação de tooling. Resolvido
+  usando uma instância real de `JwtService` em `AuthServiceTest` (ver
+  `docs/CONVENCOES.md`), já que nenhum dos três cenários testados chega a
+  invocá-la.
+
+### Armadilhas
+
+- Nenhuma armadilha nova de SQLite/config — as duas acima já cobertas
+  como achados.
