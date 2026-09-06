@@ -61,8 +61,8 @@ não pode vazar dado de outro usuário se o repository já filtra por dono.
 - [x] 0. Preparação: limpeza do desktop, base Spring Boot, entidades e
       repositories.
 - [x] 1. Segurança + JWT + AuthController.
-- [ ] 2. Categorias (controller + service + DTOs) **(próxima etapa)**
-- [ ] 3. Transações (controller + service + DTOs)
+- [x] 2. Categorias (controller + service + DTOs).
+- [ ] 3. Transações (controller + service + DTOs) **(próxima etapa)**
 - [ ] 4. Saldo e relatórios
 - [ ] 5. GlobalExceptionHandler
 - [ ] 6. Swagger
@@ -71,22 +71,16 @@ não pode vazar dado de outro usuário se o repository já filtra por dono.
 
 ### Etapa 1 — o que foi implementado
 
-- `SecurityConfig`: STATELESS, CSRF off, público `/api/auth/**`,
-  `/swagger-ui.html`, `/swagger-ui/**`, `/v3/api-docs/**`, `/error`; resto
-  autenticado. Beans `PasswordEncoder` (BCrypt), `DaoAuthenticationProvider`,
-  `AuthenticationManager`, `AuthenticationEntryPoint` (401) e
-  `AccessDeniedHandler` (403).
-- `JwtService`/`JwtProperties` (jjwt 0.12.6, `Keys.hmacShaKeyFor` +
-  `verifyWith`, sem API antiga) + `JwtAuthenticationFilter` +
+- `SecurityConfig` STATELESS/CSRF off (público: `/api/auth/**`,
+  `/swagger-ui.html`, `/swagger-ui/**`, `/v3/api-docs/**`, `/error`) +
+  `AuthenticationEntryPoint` (401) + `AccessDeniedHandler` (403).
+- `JwtService`/`JwtProperties` (jjwt 0.12.6) + `JwtAuthenticationFilter` +
   `UsuarioDetailsService`/`UsuarioDetailsImpl` (principal com `getId()`).
-- `AuthController`: `POST /api/auth/register` (201) e `/login` (200);
-  `RegistroDTO`/`LoginDTO`/`TokenDTO` (records + Bean Validation);
-  `EmailJaCadastradoException` (409) e `CredenciaisInvalidasException` (401
-  genérico) tratadas por `@ExceptionHandler` local — sem
-  `GlobalExceptionHandler` ainda (etapa 5).
+- `AuthController` (`register` 201 / `login` 200) com `EmailJaCadastradoException`
+  (409) e `CredenciaisInvalidasException` (401 genérico).
 - `ErroResponse` (`com.fintrack.exception`): formato único de erro
-  (`timestamp, status, mensagem, path`) usado por entry point, access denied
-  handler e handlers locais — a etapa 5 deve reusá-lo, não inventar outro.
+  (`timestamp, status, mensagem, path`), reusado por todo handler de erro
+  desde então — a etapa 5 deve manter esse formato, não inventar outro.
 
 ### Decisão: usuário autenticado nas etapas 2 e 3
 
@@ -96,19 +90,34 @@ parâmetro: `UsuarioAutenticado.getId()` (`com.fintrack.security`) — tem
 guarda contra principal anônimo (`"anonymousUser"` é `String`, não
 `UsuarioDetailsImpl`; sem guarda dá `ClassCastException`).
 
+### Etapa 2 — o que foi implementado
+
+- `DataInitializer` (`CommandLineRunner`, `com.fintrack.config`): semeia as
+  8 categorias globais, checando `existsByNomeIgnoreCaseAndUsuarioIsNull`
+  antes de cada insert — idempotente (testado reiniciando o app duas vezes,
+  sem duplicar).
+- `CategoriaService`: `listar` usa `findVisiveisPara`; criar/atualizar/excluir
+  passam por `buscarPropriaEditavel` (usa `findAcessivelPor`, que só retorna
+  global ou própria — id de outro usuário nunca aparece, vira 404
+  automaticamente) + checagem `isGlobal()` → 403.
+- `CategoriaController` em `/api/v1/usuarios/{usuarioId}/categorias`: o
+  `{usuarioId}` da rota é comparado a `@AuthenticationPrincipal UsuarioDetailsImpl.getId()`
+  antes de qualquer coisa; se não bater, `RecursoNaoEncontradoException` (404
+  genérico). Exceções novas em `com.fintrack.exception`:
+  `CategoriaNaoEncontradaException` (404), `CategoriaGlobalImutavelException`
+  (403), `NomeCategoriaDuplicadoException`/`CategoriaComTransacoesException`
+  (409) — tratadas por `@ExceptionHandler` local, mesmo padrão do
+  `AuthController` (sem `GlobalExceptionHandler` ainda).
+
 ### Armadilhas encontradas
 
 - `/error` fora do `permitAll()` fazia falha de `@Valid` virar 401 em vez de
-  400 (o forward interno do Spring para `/error` passa pela cadeia de
-  segurança).
-- `response.getWriter()` no entry point/access denied handler usa
-  ISO-8859-1 por padrão — corrigido com `setCharacterEncoding("UTF-8")` +
-  `getOutputStream()`.
-- `/swagger-ui.html` não é coberto por `/swagger-ui/**` (rota de redirect
-  própria) — precisa entrada explícita em `permitAll()`.
-- `mvn spring-boot:run` deu `ClassNotFoundException` neste ambiente (Git
-  Bash/Windows); validado com `mvn clean package` + `java -jar` usando
-  `"$JAVA_HOME/bin/java"` (o `java` do PATH era um JDK 8 via SDKMAN).
+  400; `response.getWriter()` no entry point/access denied handler saía em
+  ISO-8859-1; `/swagger-ui.html` não é coberto por `/swagger-ui/**`. As três
+  corrigidas na etapa 1 (ver commit `629270a`).
+- `mvn spring-boot:run` falha neste ambiente (Git Bash/Windows); validação
+  em runtime é sempre via `mvn clean package` + `java -jar` com
+  `"$JAVA_HOME/bin/java"` (o `java` do PATH é um JDK 8 via SDKMAN).
 
 ## Pontos em aberto
 
