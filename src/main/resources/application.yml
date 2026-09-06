@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:fintrack.db?foreign_keys=on
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+fintrack:
+  jwt:
+    secret: ${JWT_SECRET:troque-este-segredo-em-producao-precisa-ter-32-caracteres-ou-mais}
+    expiration-ms: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
