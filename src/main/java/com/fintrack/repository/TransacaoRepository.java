@@ -23,6 +23,23 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     Page<Transacao> findByUsuarioIdOrderByDataDesc(Long usuarioId, Pageable pageable);
 
+    /**
+     * Filtros opcionais (categoriaId, inicio, fim) para o GET paginado do
+     * TransacaoController. O ordenamento vem do Pageable, nao daqui.
+     */
+    @Query("""
+            select t from Transacao t
+            where t.usuario.id = :usuarioId
+              and (:categoriaId is null or t.categoria.id = :categoriaId)
+              and (:inicio is null or t.data >= :inicio)
+              and (:fim is null or t.data <= :fim)
+            """)
+    Page<Transacao> findComFiltros(@Param("usuarioId") Long usuarioId,
+                                    @Param("categoriaId") Long categoriaId,
+                                    @Param("inicio") LocalDate inicio,
+                                    @Param("fim") LocalDate fim,
+                                    Pageable pageable);
+
     List<Transacao> findByUsuarioIdAndDataBetweenOrderByDataDesc(Long usuarioId, LocalDate inicio, LocalDate fim);
 
     List<Transacao> findByUsuarioIdAndCategoriaIdOrderByDataDesc(Long usuarioId, Long categoriaId);
