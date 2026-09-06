@@ -2,25 +2,18 @@ package com.fintrack.controller;
 
 import com.fintrack.dto.SaldoDTO;
 import com.fintrack.dto.TotalPorCategoriaDTO;
-import com.fintrack.exception.ErroResponse;
-import com.fintrack.exception.IntervaloDataInvalidoException;
 import com.fintrack.exception.RecursoNaoEncontradoException;
 import com.fintrack.model.TipoTransacao;
 import com.fintrack.security.UsuarioDetailsImpl;
 import com.fintrack.service.RelatorioService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -55,24 +48,5 @@ public class RelatorioController {
         if (!usuarioId.equals(usuarioLogado.getId())) {
             throw new RecursoNaoEncontradoException();
         }
-    }
-
-    // Handlers locais: nao ha GlobalExceptionHandler ate a etapa 5 (ver docs/CONVENCOES.md).
-
-    @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<ErroResponse> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex,
-                                                                     HttpServletRequest request) {
-        return construirErro(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(IntervaloDataInvalidoException.class)
-    public ResponseEntity<ErroResponse> handleIntervaloDataInvalido(IntervaloDataInvalidoException ex,
-                                                                       HttpServletRequest request) {
-        return construirErro(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
-    }
-
-    private ResponseEntity<ErroResponse> construirErro(HttpStatus status, String mensagem, HttpServletRequest request) {
-        ErroResponse erro = new ErroResponse(Instant.now(), status.value(), mensagem, request.getRequestURI());
-        return ResponseEntity.status(status).body(erro);
     }
 }

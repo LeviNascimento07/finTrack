@@ -130,3 +130,41 @@ e precisa ser discutida antes de qualquer etapa futura mexer nisso.
 ### Armadilhas
 
 - Nenhuma nova.
+
+## Etapa 5 — GlobalExceptionHandler
+
+- Levantamento antes de codar: não havia `@ResponseStatus` em nenhuma
+  exceção (busca em todo `src/main/java` sem resultado) — o status era
+  decidido por `@ExceptionHandler` locais duplicados nos 4 controllers,
+  cada um com seu próprio `construirErro`. A API tinha **2 formatos** de
+  corpo de erro: o `ErroResponse` customizado (`timestamp, status,
+  mensagem, path`) nesses handlers locais e no entry point/access denied
+  handler; e o corpo padrão do Spring Boot (`timestamp, status, error,
+  path`, sem mensagem — `server.error.include-message` é `never` por
+  padrão) sempre que uma exceção não tinha handler local:
+  `MethodArgumentNotValidException`, `ConstraintViolationException`,
+  `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`,
+  e qualquer 500 não tratado. `server.error.include-stacktrace` já não
+  estava como `always` (ausente do `application.yml`, padrão `never`).
+- `ErroResponse` ganhou os campos `erro` (`status.getReasonPhrase()`) e
+  `campos` (lista opcional de `ErroCampoDTO`, omitida via
+  `@JsonInclude(NON_NULL)` quando não é erro de validação por campo) — ver
+  `docs/CONVENCOES.md` para a convenção completa (`ErroResponse.of(...)`,
+  nunca handler local, nunca `@ResponseStatus`).
+- `GlobalExceptionHandler` (`@RestControllerAdvice`) concentra todo o
+  mapeamento; os 4 controllers perderam seus `@ExceptionHandler` locais e
+  o helper `construirErro`. `JwtAuthenticationEntryPoint`/
+  `JwtAccessDeniedHandler` passaram a construir o corpo via
+  `ErroResponse.of(...)`, unificando de vez com o handler global.
+- `GlobalExceptionHandlerTest` (integração): prova que 400 (validação),
+  404 (`{usuarioId}` de outra pessoa) e 409 (e-mail duplicado) devolvem as
+  mesmas 5 chaves-base no corpo.
+
+### Armadilhas
+
+- Não foi possível disparar organicamente um 500 real via requisições HTTP
+  para confirmar o fallback fim-a-fim — todo input malformado testado
+  (JSON quebrado, enum inválido no corpo e na query, tipo de path variable
+  errado) já caía num handler específico (400/404/409). Confirmado por
+  revisão de código que o fallback loga a exceção inteira só no servidor e
+  devolve mensagem genérica fixa ao cliente.
