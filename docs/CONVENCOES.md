@@ -22,15 +22,35 @@ repetido em cada controller). Se não bater, lança
 `RecursoNaoEncontradoException` (404) — nunca 403, para não confirmar que
 aquele id pertence a outra pessoa.
 
-## Tratamento de erro (sem GlobalExceptionHandler até a etapa 5)
+## Tratamento de erro
 
-`ErroResponse` (`com.fintrack.exception`) é o formato único de corpo de
-erro: `timestamp, status, mensagem, path`. Cada controller trata suas
-próprias exceções de negócio via `@ExceptionHandler` local (mesmo padrão em
-`AuthController`, `CategoriaController`, `TransacaoController`), sempre
-devolvendo `ErroResponse` através do helper privado `construirErro`. Quando
-a etapa 5 introduzir o `GlobalExceptionHandler`, ele deve reusar esse mesmo
-formato e pode absorver esses handlers locais.
+`GlobalExceptionHandler` (`@RestControllerAdvice`, em
+`com.fintrack.exception`) é o ÚNICO lugar que mapeia exceção → status HTTP.
+Uma exceção de negócio nova (404/403/409/...) só precisa: (1) a classe da
+exceção com uma mensagem de construtor já pronta para o cliente, e (2) uma
+entrada `@ExceptionHandler` em `GlobalExceptionHandler` — nunca um handler
+local no controller, nunca `@ResponseStatus` na classe da exceção (duas
+fontes de verdade sobre o status). Controllers não importam `ErroResponse`
+nem têm `construirErro`.
+
+`ErroResponse` (record) é o formato único de corpo de erro:
+`timestamp, status, erro, mensagem, path, campos`. `campos` (lista de
+`ErroCampoDTO(campo, mensagem)`) é `null`/omitido (`@JsonInclude(NON_NULL)`)
+em todo erro que não seja de validação por campo — o formato-base de 5
+chaves é sempre o mesmo. Construa toda instância via `ErroResponse.of(...)`,
+nunca com `new ErroResponse(...)` direto, para não esquecer `erro`
+(`status.getReasonPhrase()`) ou duplicar a montagem do timestamp.
+
+`JwtAuthenticationEntryPoint` (401) e `JwtAccessDeniedHandler` (403) usam
+esse mesmo `ErroResponse.of(...)` mas escrevem a resposta manualmente
+(`response.getOutputStream()` + `ObjectMapper`, nunca `getWriter()` — ver
+armadilha de UTF-8 na etapa 1) porque rodam no filtro de segurança, antes
+do `DispatcherServlet`, e por isso uma exceção de autenticação/autorização
+nunca chega ao `@RestControllerAdvice`.
+
+O fallback (`Exception.class` → 500) nunca devolve `ex.getMessage()`, nome
+de classe ou stack trace no corpo — só loga (`log.error`) no servidor.
+Mensagem genérica fixa para o cliente.
 
 ## Recurso "não encontrado" nunca distingue de "não seu"
 
