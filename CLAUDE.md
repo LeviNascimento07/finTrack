@@ -68,8 +68,8 @@ camada de dados, não só na de segurança.
 - [x] 1. Segurança + JWT + AuthController.
 - [x] 2. Categorias (controller + service + DTOs).
 - [x] 3. Transações (controller + service + DTOs).
-- [ ] 4. Saldo e relatórios **(atual)**
-- [ ] 5. GlobalExceptionHandler
+- [x] 4. Saldo e relatórios.
+- [ ] 5. GlobalExceptionHandler **(atual)**
 - [ ] 6. Swagger
 - [ ] 7. Testes
 - [ ] 8. README
