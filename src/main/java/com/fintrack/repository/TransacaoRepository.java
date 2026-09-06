@@ -67,6 +67,7 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             from Transacao t join t.categoria c
             where t.usuario.id = :usuarioId and t.tipo = :tipo
             group by c.nome
+            order by c.nome
             """)
     List<TotalPorCategoria> totalizarPorCategoria(@Param("usuarioId") Long usuarioId, @Param("tipo") TipoTransacao tipo);
 }
