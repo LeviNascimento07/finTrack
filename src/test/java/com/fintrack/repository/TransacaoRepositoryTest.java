@@ -97,7 +97,7 @@ class TransacaoRepositoryTest {
     }
 
     @Test
-    void totalizarPorCategoria_agrupaEOrdenaPorNome() {
+    void totalizarPorCategoria_agrupaEOrdenaPorValorDesc() {
         Usuario usuario = novoUsuario();
         Categoria zebra = novaCategoria("Zebra", usuario);
         Categoria alimentacao = novaCategoria("Alimentação", usuario);
@@ -114,10 +114,10 @@ class TransacaoRepositoryTest {
         assertThat(totais).hasSize(3);
         assertThat(totais.get(0).getNomeCategoria()).isEqualTo("Alimentação");
         assertThat(totais.get(0).getTotal()).isEqualByComparingTo("25.00");
-        assertThat(totais.get(1).getNomeCategoria()).isEqualTo("Moda");
-        assertThat(totais.get(1).getTotal()).isEqualByComparingTo("7.00");
-        assertThat(totais.get(2).getNomeCategoria()).isEqualTo("Zebra");
-        assertThat(totais.get(2).getTotal()).isEqualByComparingTo("10.00");
+        assertThat(totais.get(1).getNomeCategoria()).isEqualTo("Zebra");
+        assertThat(totais.get(1).getTotal()).isEqualByComparingTo("10.00");
+        assertThat(totais.get(2).getNomeCategoria()).isEqualTo("Moda");
+        assertThat(totais.get(2).getTotal()).isEqualByComparingTo("7.00");
     }
 
     @Test

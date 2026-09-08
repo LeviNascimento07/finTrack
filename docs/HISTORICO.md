@@ -222,9 +222,11 @@ sem depender de nenhum dado persistido).
   escopo desta etapa pedia um teste confirmando que o método "agrupa e
   ordena corretamente", mas `GROUP BY` sem `ORDER BY` não garante ordem
   nenhuma (por sorte "funcionava" no SQLite por comportamento não
-  especificado). Usuário optou por adicionar `order by c.nome` à query
-  (pequena mudança de produção, aprovada antes de escrever o teste) em vez
-  de só testar o agrupamento ignorando ordem.
+  especificado). Decisão minha, tomada durante a implementação sem
+  consultar o usuário: adicionei `order by c.nome` à query. Revisado
+  depois pelo usuário, que apontou que num relatório de distribuição de
+  gastos a ordenação útil é por valor (maior despesa primeiro), não
+  alfabética — trocado para `order by sum(t.valor) desc` (ver Etapa 8).
 - `@Mock` em `JwtService` (classe concreta) quebrava com
   `MockitoException: Java 24 ... not supported by ... Byte Buddy` neste
   ambiente — não é bug de produção, é limitação de tooling. Resolvido
@@ -236,3 +238,27 @@ sem depender de nenhum dado persistido).
 
 - Nenhuma armadilha nova de SQLite/config — as duas acima já cobertas
   como achados.
+
+## Etapa 8 — README
+
+- `README.md` reescrito do zero (o anterior descrevia o app desktop
+  JavaFX, que não existe mais no `master`) com nota de que a versão
+  desktop original está preservada na branch `javafx-desktop`.
+- Todo exemplo de curl (register → login → uso do token, criação de
+  receita/despesa, saldo, relatório por categoria) foi testado contra uma
+  instância local real (`mvn clean package` + `java -jar`) antes de entrar
+  no README — inclusive confirmando que o primeiro usuário registrado
+  recebe `usuarioId = 1` e que as 8 categorias globais semeadas pelo
+  `DataInitializer` já existem nesse momento.
+- Antes desta etapa, duas correções pedidas pelo usuário na revisão da
+  Etapa 7: (1) o registro do `ORDER BY` de `totalizarPorCategoria` foi
+  corrigido para atribuir a decisão a quem de fato a tomou (ver Etapa 7);
+  (2) a ordenação da query passou de `order by c.nome` para
+  `order by sum(t.valor) desc` — num relatório de distribuição de gastos, a
+  ordem útil é da maior despesa para a menor, não alfabética. Teste
+  correspondente (`TransacaoRepositoryTest.totalizarPorCategoria_agrupaEOrdenaPorValorDesc`)
+  ajustado para a nova ordem esperada.
+
+### Armadilhas
+
+- Nenhuma nova.
